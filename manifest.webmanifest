@@ -1,0 +1,16 @@
+{
+  "name": "Cancún Phrases",
+  "short_name": "Cancún",
+  "description": "Offline Mexican-Spanish phrasebook with audio and hands-free study mode.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#075a64",
+  "theme_color": "#0a7e8c",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

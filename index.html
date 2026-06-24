@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cancún">
+<meta name="theme-color" content="#0a7e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Cancún Phrases 🌴</title>
+<style>
+  :root{
+    --sea:#0a7e8c; --sea-deep:#075a64; --sand:#f6e7c8; --sun:#ffb703;
+    --coral:#ef6f53; --ink:#0d1b1e; --card:#ffffff; --muted:#5d7378;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:linear-gradient(165deg,#0a7e8c 0%,#075a64 45%,#0d1b1e 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:90px;
+  }
+  header{
+    padding:18px 16px 12px; text-align:center; color:#fff;
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg,#0a7e8c,rgba(10,126,140,0.96));
+    backdrop-filter:blur(6px);
+    box-shadow:0 2px 14px rgba(0,0,0,.25);
+  }
+  header h1{margin:0;font-size:22px;letter-spacing:.5px;}
+  header p{margin:4px 0 12px;font-size:12.5px;opacity:.85;}
+  #search{
+    width:100%;padding:12px 14px;border:none;border-radius:14px;
+    font-size:16px;outline:none;background:rgba(255,255,255,.95);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);
+  }
+  /* category tabs */
+  .tabs{
+    display:flex;gap:8px;overflow-x:auto;padding:12px 12px 4px;
+    position:sticky;top:0;z-index:15;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;padding:9px 15px;border-radius:999px;border:none;
+    font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer;
+    background:rgba(255,255,255,.18);color:#fff;transition:.15s;
+  }
+  .tab.active{background:var(--sun);color:var(--ink);box-shadow:0 3px 10px rgba(0,0,0,.3);}
+  /* cards — compact 2-up grid so more phrases fit on a phone screen */
+  .grid{
+    padding:6px 10px 24px;display:grid;gap:8px;align-items:start;
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  }
+  .card{
+    background:var(--card);border-radius:13px;padding:10px 11px;
+    box-shadow:0 3px 9px rgba(0,0,0,.16);cursor:pointer;
+    border-left:4px solid var(--coral);transition:transform .08s;
+    position:relative;
+  }
+  .card:active{transform:scale(.97);}
+  .card .es{font-size:15.5px;font-weight:700;color:var(--sea-deep);line-height:1.2;padding-right:16px;}
+  .card .en{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.2;}
+  .card .phon{font-size:11px;color:var(--coral);font-style:italic;margin-top:3px;line-height:1.2;}
+  .card .spk{
+    position:absolute;top:8px;right:8px;font-size:15px;opacity:.45;transition:.2s;
+  }
+  /* visual confirmation that the phrase is being spoken */
+  .card.speaking{border-left-color:var(--sea);background:#eafaf8;}
+  .card.speaking .spk{opacity:1;transform:scale(1.25);animation:pulse .7s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1.1);}50%{transform:scale(1.35);}}
+  .hint{
+    text-align:center;color:rgba(255,255,255,.75);font-size:12px;
+    padding:0 20px 14px;line-height:1.5;
+  }
+  .empty{color:#fff;text-align:center;padding:40px 20px;opacity:.7;}
+  /* the card currently being studied */
+  .card.current{box-shadow:0 0 0 3px var(--sun),0 4px 12px rgba(0,0,0,.25);}
+  /* install banner (scrolls inline, above the player bar) */
+  #tip{
+    margin:2px 12px 8px;border-radius:12px;
+    background:rgba(13,27,30,.85);color:#fff;font-size:12.5px;
+    padding:11px 14px;display:flex;gap:10px;align-items:center;
+  }
+  #tip button{margin-left:auto;background:var(--sun);border:none;color:var(--ink);
+    font-weight:700;padding:7px 13px;border-radius:10px;font-size:12.5px;}
+  /* Study-mode player bar (fixed at the bottom) */
+  #player{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    display:flex;gap:8px;align-items:center;justify-content:center;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(13,27,30,.97);backdrop-filter:blur(8px);
+    box-shadow:0 -3px 16px rgba(0,0,0,.45);
+  }
+  #player button{
+    border:none;border-radius:12px;font-weight:700;cursor:pointer;
+    padding:11px 13px;font-size:16px;background:rgba(255,255,255,.16);color:#fff;
+  }
+  #player button:active{transform:scale(.94);}
+  #player #pPlay{background:var(--sun);color:var(--ink);min-width:118px;font-size:15px;}
+  #player #pLoop.on{background:var(--sea);color:#fff;}
+  #player #pInfo{color:#bfe9ec;font-size:11px;font-weight:600;line-height:1.2;margin-left:2px;max-width:84px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌴 Cancún Phrases</h1>
+  <p>Tap any card to hear it spoken · works offline</p>
+  <input id="search" placeholder="🔍 Search (English or Spanish)…" autocomplete="off">
+</header>
+
+<div class="tabs" id="tabs"></div>
+<div class="hint" id="hint">Tap a card to hear it 🔊 &nbsp;·&nbsp; or press <b>▶︎ Study</b> below to play this list Spanish → English</div>
+<div class="grid" id="grid"></div>
+
+<div id="tip">
+  📲 Add to Home Screen so it works like an app, even with no signal.
+  <button onclick="document.getElementById('tip').remove()">Got it</button>
+</div>
+
+<!-- Study-mode player: walks the current list, speaking Spanish then English -->
+<div id="player">
+  <button id="pPrev" title="Previous">⏮</button>
+  <button id="pPlay">▶︎ Study</button>
+  <button id="pNext" title="Next">⏭</button>
+  <button id="pLoop" class="on" title="Repeat list">🔁</button>
+  <span id="pInfo">Spanish → English</span>
+</div>
+
+<!-- Real human-voice recordings (generated by generate_audio.py). Loads before the app;
+     if absent, the app gracefully falls back to the phone's built-in voice. -->
+<script src="audio-map.js"></script>
+<script>
+const DATA = {
+  "Basics": [
+    ["Hola","Hello","OH-lah"],
+    ["Buenos días","Good morning","BWAY-nos DEE-as"],
+    ["Buenas tardes","Good afternoon","BWAY-nas TAR-des"],
+    ["Buenas noches","Good evening / night","BWAY-nas NO-ches"],
+    ["Por favor","Please","por fah-VOR"],
+    ["Gracias","Thank you","GRAH-see-as"],
+    ["Muchas gracias","Thank you very much","MOO-chas GRAH-see-as"],
+    ["De nada","You're welcome","day NAH-dah"],
+    ["Sí","Yes","see"],
+    ["No","No","no"],
+    ["Perdón","Sorry / excuse me","per-DOHN"],
+    ["Con permiso","Excuse me (passing by)","kon per-MEE-so"],
+    ["No hablo español","I don't speak Spanish","no AH-blo es-pan-YOL"],
+    ["¿Habla inglés?","Do you speak English?","AH-bla een-GLES"],
+    ["No entiendo","I don't understand","no en-tee-EN-do"],
+    ["¿Puede repetir?","Can you repeat that?","PWAY-de reh-peh-TEER"]
+  ],
+  "Small Talk": [
+    ["¿Cómo está?","How are you? (polite)","KO-mo es-TAH"],
+    ["Muy bien, gracias","Very good, thank you","mwee bee-EN GRAH-see-as"],
+    ["Ah, sí, muy bien","Ah yes, very good","ah see mwee bee-EN"],
+    ["¡Qué bueno!","How nice! / Great!","kay BWAY-no"],
+    ["¡Excelente!","Excellent!","ex-eh-LEN-te"],
+    ["¡Claro!","Of course!","KLA-ro"],
+    ["¡Salud!","Cheers! / Bless you","sah-LOOD"],
+    ["Mucho gusto","Nice to meet you","MOO-cho GOOS-to"],
+    ["¿De dónde es?","Where are you from?","day DON-de es"],
+    ["Soy de Estados Unidos","I'm from the USA","soy day es-TA-dos oo-NEE-dos"],
+    ["¡Está muy bonito aquí!","It's beautiful here!","es-TAH mwee bo-NEE-to ah-KEE"],
+    ["Hasta luego","See you later","AHS-ta loo-EH-go"],
+    ["Adiós","Goodbye","ah-dee-OHS"]
+  ],
+  "Bar & Drinks": [
+    ["Una cerveza, por favor","One beer, please","OO-na ser-VEH-sa"],
+    ["Otra cerveza, por favor","Another beer, please","OH-tra ser-VEH-sa"],
+    ["Dos cervezas más","Two more beers","dos ser-VEH-sas mas"],
+    ["¿Qué cerveza tienen?","What beer do you have?","kay ser-VEH-sa tee-EH-nen"],
+    ["Bien fría, por favor","Nice and cold, please","bee-EN FREE-ah"],
+    ["Un tequila","A tequila","oon teh-KEE-la"],
+    ["Un mezcal","A mezcal","oon mes-KAL"],
+    ["Una margarita","A margarita","OO-na mar-ga-REE-ta"],
+    ["Un agua, por favor","A water, please","oon AH-gwa"],
+    ["¿Tienen botana?","Do you have snacks?","tee-EH-nen bo-TAH-na"],
+    ["La cuenta, por favor","The check, please","la KWEN-ta"],
+    ["¿Aceptan tarjeta?","Do you take card?","ah-SEP-tan tar-HEH-ta"],
+    ["Quédese con el cambio","Keep the change","KAY-de-se kon el KAM-bee-o"],
+    ["¡Salud, amigos!","Cheers, friends!","sah-LOOD ah-MEE-gos"]
+  ],
+  "Directions": [
+    ["¿Dónde está…?","Where is…?","DON-de es-TAH"],
+    ["¿Cómo llego a este hotel?","How do I get to this hotel?","KO-mo YAY-go a ES-te o-TEL"],
+    ["Estoy buscando este lugar","I'm looking for this place","es-TOY boos-KAN-do ES-te loo-GAR"],
+    ["¿Está cerca?","Is it close?","es-TAH SER-ka"],
+    ["¿Está lejos?","Is it far?","es-TAH LAY-hos"],
+    ["¿A la izquierda o derecha?","Left or right?","a la ees-kee-ER-da o de-REH-cha"],
+    ["Todo derecho","Straight ahead","TO-do de-REH-cho"],
+    ["¿Dónde está el baño?","Where's the bathroom?","DON-de es-TAH el BAHN-yo"],
+    ["¿Dónde puedo tomar un taxi?","Where can I get a taxi?","DON-de PWAY-do to-MAR oon TAK-see"],
+    ["Lléveme aquí, por favor","Take me here, please","YAY-ve-me ah-KEE"],
+    ["¿Cuánto cuesta el viaje?","How much is the ride?","KWAN-to KWES-ta el vee-AH-he"],
+    ["Pare aquí, por favor","Stop here, please","PAH-re ah-KEE"],
+    ["Estoy perdido","I'm lost","es-TOY per-DEE-do"],
+    ["¿Me puede ayudar?","Can you help me?","may PWAY-de ah-yoo-DAR"]
+  ],
+  "Shopping & Haggle": [
+    ["¿Cuánto cuesta?","How much is it?","KWAN-to KWES-ta"],
+    ["¿Cuánto es todo?","How much for all of it?","KWAN-to es TO-do"],
+    ["Es muy caro","It's too expensive","es mwee KAH-ro"],
+    ["¿Tiene algo más barato?","Anything cheaper?","tee-EH-ne AL-go mas ba-RAH-to"],
+    ["¿Me hace un descuento?","Can you give me a discount?","may AH-se oon des-KWEN-to"],
+    ["¿Cuál es su mejor precio?","What's your best price?","kwal es soo me-HOR PREH-see-o"],
+    ["Le doy…","I'll give you…","le doy"],
+    ["Está bien, me lo llevo","Okay, I'll take it","es-TAH bee-EN, me lo YAY-vo"],
+    ["No, gracias","No, thank you","no GRAH-see-as"],
+    ["Solo estoy mirando","Just looking","SO-lo es-TOY mee-RAN-do"],
+    ["¿Aceptan dólares?","Do you take dollars?","ah-SEP-tan DOH-la-res"],
+    ["¿Tiene cambio?","Do you have change?","tee-EH-ne KAM-bee-o"]
+  ],
+  "Beach & Golf Cart": [
+    ["¿Dónde rento un carrito de golf?","Where do I rent a golf cart?","DON-de REN-to oon ka-REE-to de golf"],
+    ["¿Por cuántas horas?","For how many hours?","por KWAN-tas OH-ras"],
+    ["¿Necesito licencia?","Do I need a license?","ne-se-SEE-to lee-SEN-see-a"],
+    ["¿Dónde cargo gasolina?","Where do I get gas?","DON-de KAR-go ga-so-LEE-na"],
+    ["Una sombrilla, por favor","An umbrella, please","OO-na som-BREE-ya"],
+    ["¿Puedo rentar una silla?","Can I rent a chair?","PWAY-do ren-TAR OO-na SEE-ya"],
+    ["¿Es seguro nadar aquí?","Is it safe to swim here?","es se-GOO-ro na-DAR ah-KEE"],
+    ["¿Hay corriente fuerte?","Is there a strong current?","eye ko-ree-EN-te FWER-te"],
+    ["Necesito bloqueador","I need sunscreen","ne-se-SEE-to blo-keh-a-DOR"],
+    ["¿Dónde está la palapa?","Where's the beach hut?","DON-de es-TAH la pa-LA-pa"],
+    ["¿Me cuida mis cosas?","Watch my things?","may KWEE-da mees KO-sas"],
+    ["¡Qué playa tan bonita!","What a beautiful beach!","kay PLA-ya tan bo-NEE-ta"]
+  ],
+  "Food": [
+    ["Una mesa para dos","A table for two","OO-na MEH-sa PA-ra dos"],
+    ["El menú, por favor","The menu, please","el me-NOO"],
+    ["¿Qué me recomienda?","What do you recommend?","kay me re-ko-mee-EN-da"],
+    ["Quiero esto","I want this","kee-EH-ro ES-to"],
+    ["Sin picante, por favor","No spicy, please","seen pee-KAN-te"],
+    ["Tengo alergia a…","I'm allergic to…","TEN-go a-LER-hee-a a"],
+    ["Está delicioso","It's delicious","es-TAH de-lee-see-OH-so"],
+    ["¿Tienen tacos?","Do you have tacos?","tee-EH-nen TA-kos"],
+    ["Más tortillas, por favor","More tortillas, please","mas tor-TEE-yas"],
+    ["Para llevar","To go","PA-ra yay-VAR"],
+    ["¿El agua es purificada?","Is the water purified?","el AH-gwa es poo-ree-fee-KA-da"]
+  ],
+  "Emergency": [
+    ["Ayuda","Help","ah-YOO-da"],
+    ["¡Es una emergencia!","It's an emergency!","es OO-na e-mer-HEN-see-a"],
+    ["Llame a la policía","Call the police","YA-me a la po-lee-SEE-a"],
+    ["Necesito un doctor","I need a doctor","ne-se-SEE-to oon dok-TOR"],
+    ["Llame a una ambulancia","Call an ambulance","YA-me a OO-na am-boo-LAN-see-a"],
+    ["Me robaron","I was robbed","me ro-BA-ron"],
+    ["Perdí mi pasaporte","I lost my passport","per-DEE mee pa-sa-POR-te"],
+    ["¿Dónde está el hospital?","Where's the hospital?","DON-de es-TAH el os-pee-TAL"],
+    ["No me siento bien","I don't feel well","no me see-EN-to bee-EN"],
+    ["Déjeme en paz","Leave me alone","DAY-he-me en pas"]
+  ]
+};
+
+const cats = Object.keys(DATA);
+let active = cats[0];
+const tabsEl = document.getElementById('tabs');
+const gridEl = document.getElementById('grid');
+const searchEl = document.getElementById('search');
+const hintEl = document.getElementById('hint');
+
+// build tabs
+cats.forEach(c=>{
+  const b=document.createElement('button');
+  b.className='tab'+(c===active?' active':'');
+  b.textContent=c;
+  b.onclick=()=>{active=c;searchEl.value='';render();
+    [...tabsEl.children].forEach(t=>t.classList.toggle('active',t.textContent===c));};
+  tabsEl.appendChild(b);
+});
+
+let esVoice=null;
+function voiceScore(v){
+  const id=(v.voiceURI+' '+v.name).toLowerCase();
+  let s=0;
+  // accent: Mexican first, then other Latin American, then any Spanish
+  const lang=v.lang.toLowerCase();
+  if(lang.startsWith('es-mx')) s+=100;
+  else if(lang.startsWith('es-us')||lang.startsWith('es-419')||lang.startsWith('es-co')||lang.startsWith('es-ar')) s+=60;
+  else if(lang.startsWith('es')) s+=30;
+  else return -1; // not Spanish
+  // quality: prefer the natural/neural voices, avoid the robotic "compact" ones
+  if(id.includes('premium')||id.includes('neural')) s+=40;
+  if(id.includes('enhanced')) s+=30;
+  if(id.includes('compact')) s-=30;
+  return s;
+}
+// English fallback voice (for Study mode). Spanish = esVoice.
+let enVoice=null;
+function pickVoice(){
+  const v=speechSynthesis.getVoices();
+  let best=null,bestScore=-1;
+  for(const x of v){const sc=voiceScore(x); if(sc>bestScore){bestScore=sc;best=x;}}
+  esVoice=best;
+  // best English voice: prefer enhanced/premium en-US, avoid compact
+  let eb=null,ebs=-1;
+  for(const x of v){
+    const lang=x.lang.toLowerCase(); if(!lang.startsWith('en'))continue;
+    const id=(x.voiceURI+' '+x.name).toLowerCase();
+    let s=lang.startsWith('en-us')?50:20;
+    if(id.includes('premium')||id.includes('neural'))s+=40;
+    if(id.includes('enhanced'))s+=30;
+    if(id.includes('compact'))s-=30;
+    if(s>ebs){ebs=s;eb=x;}
+  }
+  enVoice=eb;
+}
+
+let currentAudio=null;
+function setSpeaking(cardEl,on){ if(cardEl) cardEl.classList.toggle('speaking',on); }
+function stopAll(){
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  if(currentAudio){ currentAudio.pause(); currentAudio=null; }
+}
+
+// Play one clip and resolve a promise when it finishes (so clips can be chained).
+// Spanish prefers the bundled human recording; English uses device TTS.
+function playClip(text,lang,cardEl){
+  return new Promise(resolve=>{
+    if(lang==='es' && window.AUDIO_MAP && window.AUDIO_MAP[text]){
+      stopAll();
+      const a=new Audio(window.AUDIO_MAP[text]); currentAudio=a;
+      setSpeaking(cardEl,true);
+      const done=()=>{ setSpeaking(cardEl,false); resolve(); };
+      a.onended=done;
+      a.onerror=()=>{ setSpeaking(cardEl,false); ttsClip(text,lang,cardEl).then(resolve); };
+      a.play().catch(()=>{ setSpeaking(cardEl,false); ttsClip(text,lang,cardEl).then(resolve); });
+      return;
+    }
+    ttsClip(text,lang,cardEl).then(resolve);
+  });
+}
+function ttsClip(text,lang,cardEl){
+  return new Promise(resolve=>{
+    if(!('speechSynthesis' in window)){ resolve(); return; }
+    stopAll();
+    if(!esVoice||!enVoice) pickVoice();
+    const u=new SpeechSynthesisUtterance(text);
+    if(lang==='en'){ u.lang='en-US'; if(enVoice)u.voice=enVoice; u.rate=0.95; }
+    else { u.lang='es-MX'; if(esVoice)u.voice=esVoice; u.rate=0.85; }
+    u.pitch=1;
+    u.onstart=()=>setSpeaking(cardEl,true);
+    u.onend=()=>{ setSpeaking(cardEl,false); resolve(); };
+    u.onerror=()=>{ setSpeaking(cardEl,false); resolve(); };
+    setTimeout(()=>speechSynthesis.speak(u),10);
+  });
+}
+// Single tap = Spanish only.
+function speak(text,cardEl){ playClip(text,'es',cardEl); }
+
+function card(es,en,phon){
+  const d=document.createElement('div');
+  d.className='card';
+  d.dataset.es=es; d.dataset.en=en;
+  d.innerHTML=`<div class="spk">🔊</div>
+    <div class="es">${es}</div>
+    <div class="en">${en}</div>
+    <div class="phon">${phon}</div>`;
+  d.onclick=()=>{ if(!study.on) speak(es,d); else { study.idx=[...gridEl.children].indexOf(d); studyRestart(); } };
+  return d;
+}
+
+function render(){
+  if(typeof study!=='undefined'){ if(study.on) studyStop(); study.idx=0; }
+  gridEl.innerHTML='';
+  const q=searchEl.value.trim().toLowerCase();
+  let rows=[];
+  if(q){
+    hintEl.style.display='none';
+    cats.forEach(c=>DATA[c].forEach(r=>{
+      if(r[0].toLowerCase().includes(q)||r[1].toLowerCase().includes(q))rows.push(r);
+    }));
+  }else{
+    hintEl.style.display='';
+    rows=DATA[active];
+  }
+  if(!rows.length){gridEl.innerHTML='<div class="empty">No phrases found 🤷</div>';return;}
+  rows.forEach(r=>gridEl.appendChild(card(r[0],r[1],r[2])));
+}
+
+/* ---------- Study mode: hands-free Spanish → English playback ---------- */
+const study={on:false,idx:0,loop:true,token:0,gap:550};
+const pPlay=document.getElementById('pPlay');
+const pPrev=document.getElementById('pPrev');
+const pNext=document.getElementById('pNext');
+const pLoop=document.getElementById('pLoop');
+const pInfo=document.getElementById('pInfo');
+
+function cardsNow(){ return [...gridEl.querySelectorAll('.card')]; }
+function clearCurrent(){ cardsNow().forEach(c=>c.classList.remove('current')); }
+function setCurrent(c){ clearCurrent(); if(c) c.classList.add('current'); }
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function updatePlayer(){
+  const total=cardsNow().length;
+  pPlay.textContent = study.on ? '⏸ Pause' : '▶︎ Study';
+  pLoop.classList.toggle('on',study.loop);
+  pInfo.textContent = total ? ((study.on?'▶ ':'')+Math.min(study.idx+1,total)+' / '+total+'  ES→EN') : 'Spanish → English';
+}
+
+async function studyRun(){
+  const my=++study.token; study.on=true; updatePlayer(); keepAwake();
+  const cards=cardsNow();
+  while(study.on && my===study.token){
+    if(study.idx>=cards.length){ if(study.loop){ study.idx=0; } else break; }
+    const c=cards[study.idx]; if(!c) break;
+    setCurrent(c);
+    c.scrollIntoView({block:'center',behavior:'smooth'});
+    updatePlayer();
+    await playClip(c.dataset.es,'es',c);     if(my!==study.token||!study.on) return;
+    await wait(study.gap);                    if(my!==study.token||!study.on) return;
+    await playClip(c.dataset.en,'en',null);   if(my!==study.token||!study.on) return;
+    await wait(study.gap+250);                if(my!==study.token||!study.on) return;
+    study.idx++;
+  }
+  if(my===study.token){ study.on=false; clearCurrent(); updatePlayer(); releaseAwake(); }
+}
+function studyStart(){ if(study.on) return; studyRun(); }
+function studyStop(){ study.token++; study.on=false; stopAll(); clearCurrent(); updatePlayer(); releaseAwake(); }
+function studyRestart(){ study.token++; studyRun(); }
+function moveTo(i){ const t=cardsNow().length; study.idx=Math.max(0,Math.min(t-1,i));
+  if(study.on) studyRestart(); else { setCurrent(cardsNow()[study.idx]); updatePlayer(); } }
+
+pPlay.onclick=()=>{ study.on?studyStop():studyStart(); };
+pPrev.onclick=()=>moveTo(study.idx-1);
+pNext.onclick=()=>moveTo(study.idx+1);
+pLoop.onclick=()=>{ study.loop=!study.loop; updatePlayer(); };
+
+/* keep the screen awake while studying (best-effort; iOS may ignore when locked) */
+let wakeLock=null;
+async function keepAwake(){ try{ if('wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen'); }catch(e){} }
+function releaseAwake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&study.on) keepAwake(); });
+
+searchEl.addEventListener('input',render);
+// voices load asynchronously on iPhone/Safari — grab them whenever ready
+if('speechSynthesis' in window){
+  pickVoice();
+  speechSynthesis.onvoiceschanged=pickVoice;
+}
+render();
+updatePlayer();
+
+// Register the offline service worker (works once the app is served over https).
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
