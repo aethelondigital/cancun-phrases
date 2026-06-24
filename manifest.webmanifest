@@ -1,7 +1,7 @@
 {
-  "name": "Cancún Phrases",
-  "short_name": "Cancún",
-  "description": "Offline Mexican-Spanish phrasebook with audio and hands-free study mode.",
+  "name": "Solo Travel Spanish",
+  "short_name": "Solo Spanish",
+  "description": "Offline Mexican-Spanish travel phrasebook with audio and hands-free study mode.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

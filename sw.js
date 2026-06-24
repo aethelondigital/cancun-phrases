@@ -1,4 +1,4 @@
-/* Cancún Phrases service worker — makes the app work fully offline (e.g. on a plane).
+/* Solo Travel Spanish service worker — makes the app work fully offline (e.g. on a plane).
    Strategy: stale-while-revalidate — serve the cached copy instantly (fast + works
    offline), and quietly refresh the cache from the network in the background so any
    updates reach the phone on the next open. Audio clips, once cached, stay cached. */

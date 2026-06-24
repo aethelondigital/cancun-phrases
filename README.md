@@ -1,4 +1,4 @@
-# 🌴 Cancún Phrases
+# 🌎 Solo Travel Spanish
 
 A tiny offline Mexican-Spanish phrasebook for your phone. Tap a card to hear it;
 press **▶︎ Study** to play the whole list hands-free (Spanish → English) on the plane.
